@@ -9,11 +9,10 @@ import org.json.simple.parser.ParseException;
 
 import static rfile.JodaDT.parseYYMMDD;
 import static rfile.RandomFileClass.*;
-import static rfile.SortMatches.allMatches;
-import static rfile.SortMatches.sortedMatches;
+import static rfile.SortMatches.*;
 
 /**
- * TeamRandomFile v3.1
+ * TeamRandomFile v3.5
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>
@@ -55,7 +54,7 @@ public class TeamRandomFile {
      *
      * @throws IOException
      */
-    public static void DefaultCfgFile() throws IOException {
+    public static void DefaultCfgFile() {
 
         File defaultCfgDir = new File(DEFAULT_DIR_TEAM);
 
@@ -71,17 +70,18 @@ public class TeamRandomFile {
 
         if (!defaultFilecfg.exists()) {
 
-            OutputStream output = new FileOutputStream(defaultFilecfg);
+            try (OutputStream output = new FileOutputStream(defaultFilecfg)) {
 
-            // set the properties value
-            prop.setProperty("lang", "en_uk");
+                // set the properties value
+                prop.setProperty("lang", "en_uk");
 
-            // save properties to project root folder
-            prop.store(output, null);
-
-            output.close();
+                // save properties to project root folder
+                prop.store(output, null);
+                jsonLang();
+            } catch (IOException io) {
+                io.printStackTrace();
+            }
         }
-        jsonLang();
     }
 
     /**
@@ -89,7 +89,7 @@ public class TeamRandomFile {
      *
      * @throws IOException
      */
-    public static void jsonLang() throws IOException {
+    public static void jsonLang() {
         if (!defaultFileLang.exists()) {
             JSONObject defaultMenu = new JSONObject();
 
@@ -100,6 +100,7 @@ public class TeamRandomFile {
             defaultMenu.put("viewmatch", "View a match");
             defaultMenu.put("viewallmatches", "View all matches");
             defaultMenu.put("viewsorteddate", "View all matches sorted by date");
+            defaultMenu.put("viewsortedpoints", "View all matches sorted total points");
             defaultMenu.put("viewnteams", "View how many teams I have");
             defaultMenu.put("shownteams", "I have");
             defaultMenu.put("teams", "teams");
@@ -120,11 +121,12 @@ public class TeamRandomFile {
             defaultMenu.put("exit", "Exit");
             defaultMenu.put("bye", "Bye!");
 
-            FileWriter fileJSON = new FileWriter(defaultFileLang);
+            try (FileWriter fileJSON = new FileWriter(defaultFileLang)) {
 
-            fileJSON.write(defaultMenu.toString());
-
-            fileJSON.close();
+                fileJSON.write(defaultMenu.toString());
+            } catch (IOException io) {
+                io.printStackTrace();
+            }
         }
     }
 
@@ -140,7 +142,7 @@ public class TeamRandomFile {
         ArrayList<File> langF = new ArrayList<>(Arrays.asList(rutaDir));
 
         for (File file : langF) {
-            if (file.isFile() && file.getName().contains(fileName) && !fileName.equalsIgnoreCase("team")) {
+            if (file.isFile() && file.getName().contains(fileName)) {
                 langExist.add(file.getName());
             }
         }
@@ -172,25 +174,53 @@ public class TeamRandomFile {
      *
      * @throws IOException
      */
-    public static void loadCfg() throws IOException {
+    public static void loadCfg() {
         DefaultCfgFile();
 
-        InputStream input = new FileInputStream(defaultFilecfg);
+        try (InputStream input = new FileInputStream(defaultFilecfg)) {
 
-        // load a properties file
-        prop.load(input);
+            // load a properties file
+            prop.load(input);
 
-        // get the property value
-        current = prop.getProperty("lang");
+            // get the property value
+            current = prop.getProperty("lang");
 
-        //If current language doesn't exist, current language will be set to default
+            //If current language doesn't exist, current language will be set to default
 
-        File cLang = new File(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+            File cLang = new File(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
 
-        if (!cLang.exists()) {
-            current = DEFAULT_FILE_NAME_LANG;
+            if (!cLang.exists()) {
+                current = DEFAULT_FILE_NAME_LANG;
+            }
+        } catch (IOException io) {
+            io.printStackTrace();
         }
-        input.close();
+    }
+
+    /**
+     * Default configuration for number of teams
+     *
+     * @throws IOException
+     * @throws ParseException
+     */
+    static void DefaultTeams() {
+
+        try (InputStream input = new FileInputStream(defaultFilecfg)) {
+
+            // load a properties
+            prop.load(input);
+
+            try {
+                // get the property value
+                teams = Integer.parseInt(prop.getProperty("nteams"));
+            } catch (NumberFormatException nfx) {
+                writeNTeams();
+            }
+
+            leagueSize = teams * teams * EACH_MATCH;
+        } catch (IOException io) {
+            io.printStackTrace();
+        }
     }
 
     /**
@@ -199,35 +229,40 @@ public class TeamRandomFile {
      * @throws IOException
      * @throws ParseException
      */
-    public static void changeLang() throws IOException, ParseException {
+    public static void changeLang() {
         selectLanguage();
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
 
-        JSONParser parser = new JSONParser();
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
-        if (langExist.size() < 2) {
-            System.out.println(jsonObject.get("onelang"));
-            return;
+            JSONParser parser = new JSONParser();
+
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
+            if (langExist.size() < 2) {
+                System.out.println(jsonObject.get("onelang"));
+                return;
+            }
+            System.out.print(jsonObject.get("slang") + ": ");
+            String lang = scan.nextLine().toLowerCase();
+
+            if (langExist.contains(lang + D_FILE_EXT_LANG)) {
+
+                OutputStream output = new FileOutputStream(defaultFilecfg);
+
+                // set the properties value
+                prop.setProperty("lang", lang);
+
+                // save properties to project root folder
+                prop.store(output, null);
+
+                output.close();
+            }
+            loadCfg();
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
         }
-        System.out.print(jsonObject.get("slang") + ": ");
-        String lang = scan.nextLine().toLowerCase();
-
-        if (langExist.contains(lang + D_FILE_EXT_LANG)) {
-
-            OutputStream output = new FileOutputStream(defaultFilecfg);
-
-            // set the properties value
-            prop.setProperty("lang", lang);
-
-            // save properties to project root folder
-            prop.store(output, null);
-
-            output.close();
-        }
-        loadCfg();
-        cLang.close();
     }
 
     /**
@@ -236,31 +271,73 @@ public class TeamRandomFile {
      * @throws IOException
      * @throws ParseException
      */
-    public static void menu() throws IOException, ParseException {
+    public static void menu() {
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-        JSONParser parser = new JSONParser();
+            JSONParser parser = new JSONParser();
 
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
-        System.out.println("\n****************************************");
-        System.out.println("[1] " + jsonObject.get("changelang"));
-        if (fileExist()) {
-            System.out.println("[2] " + jsonObject.get("queuedmatch"));
-            System.out.println("[3] " + jsonObject.get("viewmatch"));
-            System.out.println("[4] " + jsonObject.get("viewallmatches"));
-            System.out.println("[5] " + jsonObject.get("viewsorteddate"));
-            System.out.println("[6] " + jsonObject.get("reset"));
-        } else {
-            System.out.println("[2] " + jsonObject.get("newleague"));
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
+            System.out.println("\n****************************************");
+            System.out.println("[1] " + jsonObject.get("changelang"));
+            if (fileExist()) {
+                System.out.println("[2] " + jsonObject.get("queuedmatch"));
+                System.out.println("[3] " + jsonObject.get("viewmatch"));
+                System.out.println("[4] " + jsonObject.get("viewallmatches"));
+                System.out.println("[5] " + jsonObject.get("viewsorteddate"));
+                System.out.println("[6] " + jsonObject.get("viewsortedpoints"));
+                System.out.println("[7] " + jsonObject.get("reset"));
+            } else {
+                System.out.println("[2] " + jsonObject.get("newleague"));
+            }
+            System.out.println("[t] " + jsonObject.get("viewnteams"));
+            System.out.println("[0] " + jsonObject.get("exit"));
+            System.out.println("****************************************\n");
+            System.out.print(jsonObject.get("select") + ": ");
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
         }
-        System.out.println("[t] " + jsonObject.get("viewnteams"));
-        System.out.println("[0] " + jsonObject.get("exit"));
-        System.out.println("****************************************\n");
-        System.out.print(jsonObject.get("select") + ": ");
+    }
 
-        cLang.close();
+    public static void showMenu() {
+
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
+
+            JSONParser parser = new JSONParser();
+
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
+
+            System.out.println("[m] " + jsonObject.get("menu"));
+            System.out.print(jsonObject.get("select") + ": ");
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
+        }
+    }
+
+    public static void showBye() {
+
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
+
+            JSONParser parser = new JSONParser();
+
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
+            System.out.println("\n" + jsonObject.get("bye"));
+            scan.close();
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
+        }
     }
 
     /**
@@ -269,67 +346,72 @@ public class TeamRandomFile {
      * @throws IOException
      * @throws ParseException
      */
-    public static void qMatch() throws IOException, ParseException {
+    public static void qMatch() {
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-        JSONParser parser = new JSONParser();
+            JSONParser parser = new JSONParser();
 
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
 
-        System.out.print(jsonObject.get("selectlteam") + ": ");
-        int teaml = parseIntN(scan.nextLine());
-        while (teaml > teams || teaml < 1) {
             System.out.print(jsonObject.get("selectlteam") + ": ");
-            teaml = parseIntN(scan.nextLine());
-        }
-
-        System.out.print(jsonObject.get("selectvteam") + ": ");
-        int teamv = parseIntN(scan.nextLine());
-        while (teamv > teams || teamv < 1 || teamv == teaml) {
-            if (teamv == teaml) {
-                System.out.println(jsonObject.get("cantbeequals"));
+            int teaml = parseIntN(scan.nextLine());
+            while (teaml > teams || teaml < 1) {
+                System.out.print(jsonObject.get("selectlteam") + ": ");
+                teaml = parseIntN(scan.nextLine());
             }
+
             System.out.print(jsonObject.get("selectvteam") + ": ");
-            teamv = parseIntN(scan.nextLine());
-        }
+            int teamv = parseIntN(scan.nextLine());
+            while (teamv > teams || teamv < 1 || teamv == teaml) {
+                if (teamv == teaml) {
+                    System.out.println(jsonObject.get("cantbeequals"));
+                }
+                System.out.print(jsonObject.get("selectvteam") + ": ");
+                teamv = parseIntN(scan.nextLine());
+            }
 
-        System.out.print(jsonObject.get("pteam") + " " + teaml + " (" + MAX_POINTS + "): ");
-
-        short pTeam1 = parseShortN(scan.nextLine());
-        while (!(pTeam1 <= MAX_POINTS) || !(pTeam1 >= 0)) {
             System.out.print(jsonObject.get("pteam") + " " + teaml + " (" + MAX_POINTS + "): ");
-            pTeam1 = parseShortN(scan.nextLine());
-        }
 
-        System.out.print(jsonObject.get("pteam") + " " + teamv + " (" + MAX_POINTS + "): ");
+            short pTeam1 = parseShortN(scan.nextLine());
+            while (!(pTeam1 <= MAX_POINTS) || !(pTeam1 >= 0)) {
+                System.out.print(jsonObject.get("pteam") + " " + teaml + " (" + MAX_POINTS + "): ");
+                pTeam1 = parseShortN(scan.nextLine());
+            }
 
-        short pTeam2 = parseShortN(scan.nextLine());
-        while (!(pTeam2 <= MAX_POINTS) || !(pTeam2 >= 0)) {
             System.out.print(jsonObject.get("pteam") + " " + teamv + " (" + MAX_POINTS + "): ");
-            pTeam2 = parseShortN(scan.nextLine());
-        }
 
-        System.out.print(jsonObject.get("rname") + " - (" + REFEREE_LENGTH + " chars): ");
+            short pTeam2 = parseShortN(scan.nextLine());
+            while (!(pTeam2 <= MAX_POINTS) || !(pTeam2 >= 0)) {
+                System.out.print(jsonObject.get("pteam") + " " + teamv + " (" + MAX_POINTS + "): ");
+                pTeam2 = parseShortN(scan.nextLine());
+            }
 
-        String refereeName = scan.nextLine();
-        while (refereeName.length() > REFEREE_LENGTH || refereeName.isEmpty()) {
             System.out.print(jsonObject.get("rname") + " - (" + REFEREE_LENGTH + " chars): ");
-            refereeName = scan.nextLine();
-        }
 
-        System.out.print(jsonObject.get("date") + " - (YYMMDD): ");
+            String refereeName = scan.nextLine();
+            while (refereeName.length() > REFEREE_LENGTH || refereeName.isEmpty()) {
+                System.out.print(jsonObject.get("rname") + " - (" + REFEREE_LENGTH + " chars): ");
+                refereeName = scan.nextLine();
+            }
 
-        String date = scan.nextLine();
-
-        while (String.valueOf(date).length() != 6 || !parseDate(String.valueOf(date))) {
             System.out.print(jsonObject.get("date") + " - (YYMMDD): ");
-            date = scan.nextLine();
-        }
 
-        writeRandom(teaml, teamv, pTeam1, pTeam2, refereeName, date);
-        cLang.close();
+            String date = scan.nextLine();
+
+            while (String.valueOf(date).length() != 6 || !parseDate(String.valueOf(date))) {
+                System.out.print(jsonObject.get("date") + " - (YYMMDD): ");
+                date = scan.nextLine();
+            }
+
+            writeRandom(teaml, teamv, pTeam1, pTeam2, refereeName, date);
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
+        }
     }
 
     /**
@@ -338,35 +420,39 @@ public class TeamRandomFile {
      * @throws IOException
      * @throws ParseException
      */
-    public static void viewMatch() throws IOException, ParseException {
+    public static void viewMatch() {
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-        JSONParser parser = new JSONParser();
+            JSONParser parser = new JSONParser();
 
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
 
-        System.out.print(jsonObject.get("selectlteam") + ": ");
-        int teaml = parseIntN(scan.nextLine());
-        while (teaml > teams || teaml < 1) {
             System.out.print(jsonObject.get("selectlteam") + ": ");
-            teaml = parseIntN(scan.nextLine());
-        }
-
-        System.out.print(jsonObject.get("selectvteam") + ": ");
-        int teamv = parseIntN(scan.nextLine());
-        while (teamv > teams || teamv < 1 || teamv == teaml) {
-            if (teamv == teaml) {
-                System.out.println(jsonObject.get("cantbeequals"));
+            int teaml = parseIntN(scan.nextLine());
+            while (teaml > teams || teaml < 1) {
+                System.out.print(jsonObject.get("selectlteam") + ": ");
+                teaml = parseIntN(scan.nextLine());
             }
+
             System.out.print(jsonObject.get("selectvteam") + ": ");
-            teamv = parseIntN(scan.nextLine());
+            int teamv = parseIntN(scan.nextLine());
+            while (teamv > teams || teamv < 1 || teamv == teaml) {
+                if (teamv == teaml) {
+                    System.out.println(jsonObject.get("cantbeequals"));
+                }
+                System.out.print(jsonObject.get("selectvteam") + ": ");
+                teamv = parseIntN(scan.nextLine());
+            }
+
+            readRandom(teaml, teamv);
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
         }
-
-        readRandom(teaml, teamv);
-
-        cLang.close();
     }
 
     /**
@@ -375,33 +461,37 @@ public class TeamRandomFile {
      * @throws IOException
      * @throws ParseException
      */
-    public static void viewAllMatches() throws IOException, ParseException {
+    public static void viewAllMatches() {
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-        JSONParser parser = new JSONParser();
+            JSONParser parser = new JSONParser();
 
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
 
-        System.out.println();
+            System.out.println();
 
-        System.out.println(jsonObject.get("welcomeleague") + ": " + readLeague());
+            System.out.println(jsonObject.get("welcomeleague") + ": " + readLeague());
 
-        int teaml = 1;
-        while (teaml <= teams) {
-            int teamv = 1;
-            while (teamv <= teams) {
-                if (teaml != teamv) {
-                    readAllRandom(teaml, teamv);
+            int teaml = 1;
+            while (teaml <= teams) {
+                int teamv = 1;
+                while (teamv <= teams) {
+                    if (teaml != teamv) {
+                        readAllRandom(teaml, teamv);
+                    }
+                    teamv++;
                 }
-                teamv++;
+                teaml++;
             }
-            teaml++;
-        }
-        System.out.println();
+            System.out.println();
 
-        cLang.close();
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
+        }
     }
 
     public static boolean isNumeric(String str) {
@@ -436,94 +526,70 @@ public class TeamRandomFile {
         } catch (Exception e) {
             return false;
         }
-
     }
 
     public static void main(String[] args) {
-        try {
-            loadCfg();
-            DefaultTeams();
-            menu();
-        } catch (IOException io) {
-            io.printStackTrace();
-        } catch (ParseException ps) {
-            ps.printStackTrace();
-        }
-
+        loadCfg();
+        DefaultTeams();
+        menu();
         String menuItem;
-
-        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
-
-            JSONParser parser = new JSONParser();
-
-            Object obj = parser.parse(cLang);
-            JSONObject jsonObject = (JSONObject) obj;
-            do {
-                menuItem = scan.nextLine();
-                switch (menuItem) {
-                    case "1":
-                        changeLang();
-                        System.out.println("[m] " + jsonObject.get("menu"));
-                        System.out.print(jsonObject.get("select") + ": ");
-                        break;
-                    case "2":
-                        if (fileExist()) {
-                            qMatch();
-                        } else {
-                            newRandomFile();
-                        }
-                        System.out.println("[m] " + jsonObject.get("menu"));
-                        System.out.print(jsonObject.get("select") + ": ");
-                        break;
-                    case "3":
-                        if (fileExist()) {
-                            viewMatch();
-                        }
-                        System.out.println("[m] " + jsonObject.get("menu"));
-                        System.out.print(jsonObject.get("select") + ": ");
-                        break;
-                    case "4":
-                        if (fileExist()) {
-                            viewAllMatches();
-                        }
-                        System.out.println("[m] " + jsonObject.get("menu"));
-                        System.out.print(jsonObject.get("select") + ": ");
-                        break;
-                    case "5":
-                        if (fileExist()) {
-                            allMatches();
-                        }
-                        System.out.println("[m] " + jsonObject.get("menu"));
-                        System.out.print(jsonObject.get("select") + ": ");
-                        break;
-                    case "6":
-                        if (fileExist()) {
-                            resetLeague();
-                        }
-                        System.out.println("[m] " + jsonObject.get("menu"));
-                        System.out.print(jsonObject.get("select") + ": ");
-                        break;
-                    case "t":
-                        viewNTeams();
-                        System.out.println("[m] " + jsonObject.get("menu"));
-                        System.out.print(jsonObject.get("select") + ": ");
-                        break;
-                    case "m":
-                        menu();
-                        break;
-                    case "0":
-                        System.out.println("\n" + jsonObject.get("bye"));
-                        scan.close();
-                        break;
-                }
-            } while (!menuItem.equals("0"));
-        } catch (FileNotFoundException ne) {
-            ne.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-        }
+        do {
+            menuItem = scan.nextLine();
+            switch (menuItem) {
+                case "1":
+                    changeLang();
+                    showMenu();
+                    break;
+                case "2":
+                    if (fileExist()) {
+                        qMatch();
+                    } else {
+                        newRandomFile();
+                    }
+                    showMenu();
+                    break;
+                case "3":
+                    if (fileExist()) {
+                        viewMatch();
+                    }
+                    showMenu();
+                    break;
+                case "4":
+                    if (fileExist()) {
+                        viewAllMatches();
+                    }
+                    showMenu();
+                    break;
+                case "5":
+                    if (fileExist()) {
+                        allMatchesByDate();
+                    }
+                    showMenu();
+                    break;
+                case "6":
+                    if (fileExist()) {
+                        allMatchesByTotalPoints();
+                    }
+                    showMenu();
+                    break;
+                case "7":
+                    if (fileExist()) {
+                        resetLeague();
+                    }
+                    showMenu();
+                    break;
+                case "t":
+                    viewNTeams();
+                    showMenu();
+                    break;
+                case "m":
+                    menu();
+                    break;
+                case "0":
+                    showBye();
+                    break;
+            }
+        } while (!menuItem.equals("0"));
     }
 }
 

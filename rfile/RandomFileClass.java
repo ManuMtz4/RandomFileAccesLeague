@@ -10,7 +10,7 @@ import static rfile.TeamRandomFile.*;
 
 
 /**
- * RandomFileClass v3.1
+ * RandomFileClass v3.5
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>
@@ -30,7 +30,7 @@ public class RandomFileClass {
         return fileLeague.exists();
     }
 
-    static void resetLeague() throws IOException, ParseException {
+    static void resetLeague() {
         fileLeague.delete();
         writeNTeams();
         newRandomFile();
@@ -42,33 +42,35 @@ public class RandomFileClass {
      * @throws IOException
      * @throws ParseException
      */
-    static void newRandomFile() throws IOException, ParseException {
+    static void newRandomFile() {
 
-        RandomAccessFile raf = new RandomAccessFile(fileLeague, "rw");
+        try (RandomAccessFile raf = new RandomAccessFile(fileLeague, "rw");
+             FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+            JSONParser parser = new JSONParser();
 
-        JSONParser parser = new JSONParser();
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
 
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
+            raf.seek(0);
+            raf.setLength(leagueSize);
 
-        raf.seek(0);
-        raf.setLength(leagueSize);
-
-        System.out.print(jsonObject.get("sponsor") + " - (30 chars): ");
-        String sponsorName = scan.nextLine();
-
-        while (sponsorName.length() > 30 || sponsorName.isEmpty()) {
             System.out.print(jsonObject.get("sponsor") + " - (30 chars): ");
-            sponsorName = scan.nextLine();
+            String sponsorName = scan.nextLine();
+
+            while (sponsorName.length() > 30 || sponsorName.isEmpty()) {
+                System.out.print(jsonObject.get("sponsor") + " - (30 chars): ");
+                sponsorName = scan.nextLine();
+            }
+            raf.seek(0);
+
+            raf.writeUTF(sponsorName); // 4x30 -120 inside of 130 bytes
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
         }
-        raf.seek(0);
-
-        raf.writeUTF(sponsorName); // 4x30 -120 inside of 130 bytes
-
-        cLang.close();
-        raf.close();
     }
 
     /**
@@ -78,16 +80,18 @@ public class RandomFileClass {
      * @throws IOException
      * @throws ParseException
      */
-    static String readLeague() throws IOException, ParseException {
+    static String readLeague() {
 
-        RandomAccessFile raf = new RandomAccessFile(fileLeague, "r");
-        raf.seek(0);
+        try (RandomAccessFile raf = new RandomAccessFile(fileLeague, "r")) {
+            raf.seek(0);
 
-        String league = raf.readUTF();
+            String league = raf.readUTF();
 
-        raf.close();
-
-        return league;
+            return league;
+        } catch (IOException io) {
+            io.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -102,24 +106,26 @@ public class RandomFileClass {
      * @throws IOException
      * @throws ParseException
      */
-    static void writeRandom(int teaml, int teamv, short pteam1, short pteam2, String rName, String date) throws IOException, ParseException {
+    static void writeRandom(int teaml, int teamv, short pteam1, short pteam2, String rName, String date) {
 
-        RandomAccessFile raf = new RandomAccessFile(fileLeague, "rw");
+        try (RandomAccessFile raf = new RandomAccessFile(fileLeague, "rw")) {
 
-        long eachLocal = leagueSize / teams; // each local space
+            long eachLocal = leagueSize / teams; // each local space
 
-        long pos = ((teaml-1)*eachLocal+teamv*EACH_MATCH)-EACH_MATCH;
+            long pos = ((teaml - 1) * eachLocal + teamv * EACH_MATCH) - EACH_MATCH;
 
-        raf.seek(pos);
+            raf.seek(pos);
 
-        raf.writeShort(pteam1); // 2
-        raf.writeShort(pteam2); // 2
-        raf.writeUTF(rName); // 4x30
-        raf.writeUTF(date); // 6 - only numbers
+            raf.writeShort(pteam1); // 2
+            raf.writeShort(pteam2); // 2
+            raf.writeUTF(rName); // 4x30
+            raf.writeUTF(date); // 6 - only numbers
 
-        // 130 bytes total
+            // 130 bytes total
 
-        raf.close();
+        } catch (IOException io) {
+            io.printStackTrace();
+        }
     }
 
     /**
@@ -130,41 +136,43 @@ public class RandomFileClass {
      * @throws IOException
      * @throws ParseException
      */
-    static void readRandom(int teaml, int teamv) throws IOException, ParseException {
+    static void readRandom(int teaml, int teamv) {
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+             RandomAccessFile raf = new RandomAccessFile(fileLeague, "r")) {
 
-        JSONParser parser = new JSONParser();
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
 
-        RandomAccessFile raf = new RandomAccessFile(fileLeague, "r");
 
-        long eachLocal = leagueSize / teams; // each local space
+            long eachLocal = leagueSize / teams; // each local space
 
-        long pos = ((teaml-1)*eachLocal+teamv*EACH_MATCH)-EACH_MATCH;
+            long pos = ((teaml - 1) * eachLocal + teamv * EACH_MATCH) - EACH_MATCH;
 
-        raf.seek(pos);
+            raf.seek(pos);
 
-        short p1 = raf.readShort();
-        short p2 = raf.readShort();
-        String r = raf.readUTF();
-        String d = raf.readUTF();
+            short p1 = raf.readShort();
+            short p2 = raf.readShort();
+            String r = raf.readUTF();
+            String d = raf.readUTF();
 
-        System.out.println();
-        if (p1 > 0 && p2 > 0 && !d.isEmpty() && !r.isEmpty()) {
-            System.out.println(teaml + " " + jsonObject.get("pteam") + ": " + p1);
-            System.out.println(teamv + " " + jsonObject.get("pteam") + ": " + p2);
-            System.out.println(jsonObject.get("rname") + ": " + r);
-            System.out.println(jsonObject.get("date") + ": " + d);
-        } else {
-            System.out.println(jsonObject.get("noplayed"));
+            System.out.println();
+            if (p1 >= 0 && p2 >= 0 && !d.isEmpty() && !r.isEmpty()) {
+                System.out.println(teaml + " " + jsonObject.get("pteam") + ": " + p1);
+                System.out.println(teamv + " " + jsonObject.get("pteam") + ": " + p2);
+                System.out.println(jsonObject.get("rname") + ": " + r);
+                System.out.println(jsonObject.get("date") + ": " + d);
+            } else {
+                System.out.println(jsonObject.get("noplayed"));
+            }
+            System.out.println();
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
         }
-        System.out.println();
-
-        raf.close();
-
-        cLang.close();
     }
 
     /**
@@ -175,97 +183,73 @@ public class RandomFileClass {
      * @throws IOException
      * @throws ParseException
      */
-    static void readAllRandom(int teaml, int teamv) throws IOException, ParseException {
+    static void readAllRandom(int teaml, int teamv) {
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+             RandomAccessFile raf = new RandomAccessFile(fileLeague, "r")) {
 
-        JSONParser parser = new JSONParser();
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
 
-        RandomAccessFile raf = new RandomAccessFile(fileLeague, "r");
+            long eachLocal = leagueSize / teams; // each local space
 
-        long eachLocal = leagueSize / teams; // each local space
+            long pos = ((teaml - 1) * eachLocal + teamv * EACH_MATCH) - EACH_MATCH;
 
-        long pos = ((teaml-1)*eachLocal+teamv*EACH_MATCH)-EACH_MATCH;
+            raf.seek(pos);
 
-        raf.seek(pos);
+            short p1 = raf.readShort();
+            short p2 = raf.readShort();
+            String r = raf.readUTF();
+            String d = raf.readUTF();
 
-        short p1 = raf.readShort();
-        short p2 = raf.readShort();
-        String r = raf.readUTF();
-        String d = raf.readUTF();
+            if (p1 >= 0 && p2 >= 0 && !d.isEmpty() && !r.isEmpty()) {
+                System.out.print("[");
+                System.out.print(teaml + " " + jsonObject.get("pteam") + ": " + p1 + " | ");
+                System.out.print(teamv + " " + jsonObject.get("pteam") + ": " + p2 + " | ");
+                System.out.print(jsonObject.get("rname") + ": " + r + " | ");
+                System.out.print(jsonObject.get("date") + ": " + d);
+                System.out.println("]");
+            }
 
-        if (p1 > 0 && p2 > 0 && !d.isEmpty() && !r.isEmpty()) {
-            System.out.print("[");
-            System.out.print(teaml + " " + jsonObject.get("pteam") + ": " + p1 + " | ");
-            System.out.print(teamv + " " + jsonObject.get("pteam") + ": " + p2 + " | ");
-            System.out.print(jsonObject.get("rname") + ": " + r + " | ");
-            System.out.print(jsonObject.get("date") + ": " + d);
-            System.out.println("]");
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
         }
-
-
-        raf.close();
-
-        cLang.close();
     }
 
-    static void writeNTeams() throws IOException, ParseException {
-        OutputStream output = new FileOutputStream(defaultFilecfg);
+    static void writeNTeams() {
+        try (OutputStream output = new FileOutputStream(defaultFilecfg);
+             FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+            JSONParser parser = new JSONParser();
 
-        JSONParser parser = new JSONParser();
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
 
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
-
-        System.out.print(jsonObject.get("nteams") + " (>1): ");
-
-        int nteams = parseIntN(scan.nextLine());
-
-        while (nteams < 2) {
             System.out.print(jsonObject.get("nteams") + " (>1): ");
-            nteams = parseIntN(scan.nextLine());
+
+            int nteams = parseIntN(scan.nextLine());
+
+            while (nteams < 2) {
+                System.out.print(jsonObject.get("nteams") + " (>1): ");
+                nteams = parseIntN(scan.nextLine());
+            }
+
+            // set the properties value
+            prop.setProperty("nteams", String.valueOf(nteams));
+
+            teams = nteams;
+
+            // save properties to project root folder
+            prop.store(output, null);
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
         }
-
-        // set the properties value
-        prop.setProperty("nteams", String.valueOf(nteams));
-
-        teams = nteams;
-
-        // save properties to project root folder
-        prop.store(output, null);
-
-        cLang.close();
-        output.close();
-    }
-
-    /**
-     * Default configuration for number of teams
-     *
-     * @throws IOException
-     * @throws ParseException
-     */
-    static void DefaultTeams() throws IOException, ParseException {
-
-        InputStream input = new FileInputStream(defaultFilecfg);
-
-        // load a properties
-        prop.load(input);
-
-        try {
-            // get the property value
-            teams = Integer.parseInt(prop.getProperty("nteams"));
-        } catch (NumberFormatException nfx) {
-            writeNTeams();
-        }
-
-        input.close();
-
-        leagueSize = teams * teams * EACH_MATCH;
-
     }
 
     /**
@@ -274,24 +258,25 @@ public class RandomFileClass {
      * @throws IOException
      * @throws ParseException
      */
-    static void viewNTeams() throws IOException, ParseException {
-        InputStream input = new FileInputStream(defaultFilecfg);
+    static void viewNTeams() {
+        try (InputStream input = new FileInputStream(defaultFilecfg);
+             FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-        // load a properties
-        prop.load(input);
+            // load a properties
+            prop.load(input);
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+            JSONParser parser = new JSONParser();
 
-        JSONParser parser = new JSONParser();
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
 
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
+            System.out.println(jsonObject.get("shownteams") + ": " + prop.getProperty("nteams") + " " + jsonObject.get("teams"));
 
-        System.out.println(jsonObject.get("shownteams") + ": " + prop.getProperty("nteams") + " " + jsonObject.get("teams"));
-
-        cLang.close();
-        input.close();
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
+        }
     }
-
 }
 

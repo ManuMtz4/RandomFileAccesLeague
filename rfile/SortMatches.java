@@ -15,7 +15,7 @@ import static rfile.RandomFileClass.*;
 import static rfile.TeamRandomFile.*;
 
 /**
- * SortMatches v1.1
+ * SortMatches v1.5
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>
@@ -28,49 +28,51 @@ public class SortMatches {
     static List<Object[]> sortedMatches = new ArrayList<>();
 
     /**
-     * Adds matches to ArrayList
+     * Adds matches to ArrayList  Object[]
      *
      * @param teaml
      * @param teamv
      * @throws IOException
      * @throws ParseException
      */
-    static void readAddArray(int teaml, int teamv) throws IOException, ParseException {
+    static void readAddArray(int teaml, int teamv) {
 
-        RandomAccessFile raf = new RandomAccessFile(fileLeague, "r");
+        try (RandomAccessFile raf = new RandomAccessFile(fileLeague, "r")) {
 
-        long eachLocal = leagueSize / teams; // each local space
+            long eachLocal = leagueSize / teams; // each local space
 
-        long pos = ((teaml-1)*eachLocal+teamv*EACH_MATCH)-EACH_MATCH;
+            long pos = ((teaml - 1) * eachLocal + teamv * EACH_MATCH) - EACH_MATCH;
 
-        raf.seek(pos);
+            raf.seek(pos);
 
-        short p1 = raf.readShort();
-        short p2 = raf.readShort();
-        String r = raf.readUTF();
-        String d = raf.readUTF();
+            short p1 = raf.readShort();
+            short p2 = raf.readShort();
+            String r = raf.readUTF();
+            String d = raf.readUTF();
 
-        Object[] array = new Object[6];
+            Object[] array = new Object[6];
 
-        if (p1 > 0 && p2 > 0 && !d.isEmpty() && !r.isEmpty()) {
-            array[0] = p1;
-            array[1] = p2;
-            array[2] = r;
-            array[3] = d;
-            array[4] = teaml;
-            array[5] = teamv;
-            sortedMatches.add(array);
+            if (p1 >= 0 && p2 >= 0 && !d.isEmpty() && !r.isEmpty()) {
+                array[0] = p1;
+                array[1] = p2;
+                array[2] = r;
+                array[3] = d;
+                array[4] = teaml;
+                array[5] = teamv;
+                sortedMatches.add(array);
+            }
+        } catch (IOException io) {
+            io.printStackTrace();
         }
-
     }
 
     /**
-     * Gets all matches sorted
+     * Checks teams before  readAddArray()
      *
      * @throws IOException
      * @throws ParseException
      */
-    public static void allMatches() throws IOException, ParseException {
+    public static void allMatches() {
         if (!sortedMatches.isEmpty()) {
             sortedMatches.clear();
         }
@@ -85,27 +87,84 @@ public class SortMatches {
             }
             teaml++;
         }
+    }
+
+    /**
+     * Gets all matches sorted by date
+     *
+     * @throws IOException
+     * @throws ParseException
+     */
+    public static void allMatchesByDate() {
+        allMatches();
         Collections.sort(sortedMatches, new DateComparator());
 
-        FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-        JSONParser parser = new JSONParser();
-        Object obj = parser.parse(cLang);
-        JSONObject jsonObject = (JSONObject) obj;
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
 
-        for (Object[] sortedMatch : sortedMatches) {
+            System.out.println();
 
-            for (int i = 0; i < 1; i++) {
-                System.out.print("[");
-                System.out.print(sortedMatch[4] + " " + jsonObject.get("pteam") + ": " + sortedMatch[0] + " | ");
-                System.out.print(sortedMatch[5] + " " + jsonObject.get("pteam") + ": " + sortedMatch[1] + " | ");
-                System.out.print(jsonObject.get("rname") + ": " + sortedMatch[2] + " | ");
-                System.out.print(jsonObject.get("date") + ": " + sortedMatch[3]);
-                System.out.println("]");
+            System.out.println(jsonObject.get("welcomeleague") + ": " + readLeague());
+
+            for (Object[] sortedMatch : sortedMatches) {
+
+                for (int i = 0; i < 1; i++) {
+                    System.out.print("[");
+                    System.out.print(sortedMatch[4] + " " + jsonObject.get("pteam") + ": " + sortedMatch[0] + " | ");
+                    System.out.print(sortedMatch[5] + " " + jsonObject.get("pteam") + ": " + sortedMatch[1] + " | ");
+                    System.out.print(jsonObject.get("rname") + ": " + sortedMatch[2] + " | ");
+                    System.out.print(jsonObject.get("date") + ": " + sortedMatch[3]);
+                    System.out.println("]");
+                }
             }
+            System.out.println();
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
         }
+    }
 
-        cLang.close();
+    /**
+     * Gets all matches sorted by total points
+     *
+     * @throws IOException
+     * @throws ParseException
+     */
+    public static void allMatchesByTotalPoints() {
+        allMatches();
+        Collections.sort(sortedMatches, new PointsComparator());
+
+        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
+
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(cLang);
+            JSONObject jsonObject = (JSONObject) obj;
+
+            System.out.println();
+
+            System.out.println(jsonObject.get("welcomeleague") + ": " + readLeague());
+
+            for (Object[] sortedMatch : sortedMatches) {
+
+                for (int i = 0; i < 1; i++) {
+                    System.out.print("[");
+                    System.out.print(sortedMatch[4] + " " + jsonObject.get("pteam") + ": " + sortedMatch[0] + " | ");
+                    System.out.print(sortedMatch[5] + " " + jsonObject.get("pteam") + ": " + sortedMatch[1] + " | ");
+                    System.out.print(jsonObject.get("rname") + ": " + sortedMatch[2] + " | ");
+                    System.out.print(jsonObject.get("date") + ": " + sortedMatch[3]);
+                    System.out.println("]");
+                }
+            }
+            System.out.println();
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (ParseException pe) {
+            pe.printStackTrace();
+        }
     }
 }
 
@@ -121,6 +180,19 @@ class DateComparator implements Comparator<Object[]> {
         DateTime a = parseYYMMDD(ax);
         DateTime b = parseYYMMDD(bx);
         return a.toLocalDate().compareTo(b.toLocalDate());
+    }
+}
+
+/**
+ * Points Comparator Class
+ */
+class PointsComparator implements Comparator<Object[]> {
+
+    @Override
+    public int compare(Object[] x, Object[] y) {
+        int ax = Integer.parseInt(String.valueOf(x[0])) + Integer.parseInt(String.valueOf(x[1]));
+        int bx = Integer.parseInt(String.valueOf(y[0])) + Integer.parseInt(String.valueOf(y[1]));
+        return bx - ax;
     }
 }
 
