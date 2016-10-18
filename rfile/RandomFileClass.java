@@ -65,7 +65,7 @@ public class RandomFileClass {
         }
         raf.seek(0);
 
-        raf.writeUTF(sponsorName); // 4x30 -120 inside of 132 bytes
+        raf.writeUTF(sponsorName); // 4x30 -120 inside of 130 bytes
 
         cLang.close();
         raf.close();
