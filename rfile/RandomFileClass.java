@@ -108,7 +108,7 @@ public class RandomFileClass {
 
         long eachLocal = leagueSize / teams; // each local space
 
-        long pos = (teaml-1)*eachLocal+teamv*EACH_MATCH;
+        long pos = ((teaml-1)*eachLocal+teamv*EACH_MATCH)-EACH_MATCH;
 
         raf.seek(pos);
 
@@ -142,7 +142,7 @@ public class RandomFileClass {
 
         long eachLocal = leagueSize / teams; // each local space
 
-        long pos = (teaml-1)*eachLocal+teamv*EACH_MATCH;
+        long pos = ((teaml-1)*eachLocal+teamv*EACH_MATCH)-EACH_MATCH;
 
         raf.seek(pos);
 
@@ -187,7 +187,7 @@ public class RandomFileClass {
 
         long eachLocal = leagueSize / teams; // each local space
 
-        long pos = (teaml-1)*eachLocal+teamv*EACH_MATCH;
+        long pos = ((teaml-1)*eachLocal+teamv*EACH_MATCH)-EACH_MATCH;
 
         raf.seek(pos);
 
