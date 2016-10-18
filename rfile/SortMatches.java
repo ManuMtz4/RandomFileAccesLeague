@@ -15,7 +15,7 @@ import static rfile.RandomFileClass.*;
 import static rfile.TeamRandomFile.*;
 
 /**
- * SortMatches v1
+ * SortMatches v1.1
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>
@@ -41,7 +41,7 @@ public class SortMatches {
 
         long eachLocal = leagueSize / teams; // each local space
 
-        long pos = teaml * eachLocal - eachLocal / teamv; // calculates the real position in fileLeague
+        long pos = (teaml-1)*eachLocal+teamv*EACH_MATCH;
 
         raf.seek(pos);
 
@@ -123,3 +123,4 @@ class DateComparator implements Comparator<Object[]> {
         return a.toLocalDate().compareTo(b.toLocalDate());
     }
 }
+

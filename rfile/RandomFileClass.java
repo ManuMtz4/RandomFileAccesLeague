@@ -10,7 +10,7 @@ import static rfile.TeamRandomFile.*;
 
 
 /**
- * RandomFileClass v3
+ * RandomFileClass v3.1
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>
@@ -21,7 +21,7 @@ import static rfile.TeamRandomFile.*;
 public class RandomFileClass {
 
     static File fileLeague = new File("league.bin");
-    private static final int EACH_MATCH = 130;
+    static final int EACH_MATCH = 130;
     static int teams;
 
     static long leagueSize;
@@ -108,7 +108,7 @@ public class RandomFileClass {
 
         long eachLocal = leagueSize / teams; // each local space
 
-        long pos = teaml * eachLocal - eachLocal / teamv; // calculates the real position in fileLeague
+        long pos = (teaml-1)*eachLocal+teamv*EACH_MATCH;
 
         raf.seek(pos);
 
@@ -142,7 +142,7 @@ public class RandomFileClass {
 
         long eachLocal = leagueSize / teams; // each local space
 
-        long pos = teaml * eachLocal - eachLocal / teamv; // calculates the real position in fileLeague
+        long pos = (teaml-1)*eachLocal+teamv*EACH_MATCH;
 
         raf.seek(pos);
 
@@ -187,7 +187,7 @@ public class RandomFileClass {
 
         long eachLocal = leagueSize / teams; // each local space
 
-        long pos = teaml * eachLocal - eachLocal / teamv; // calculates the real position in fileLeague
+        long pos = (teaml-1)*eachLocal+teamv*EACH_MATCH;
 
         raf.seek(pos);
 
@@ -294,3 +294,4 @@ public class RandomFileClass {
     }
 
 }
+
