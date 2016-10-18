@@ -13,7 +13,7 @@ import static rfile.SortMatches.allMatches;
 import static rfile.SortMatches.sortedMatches;
 
 /**
- * TeamRandomFile v23
+ * TeamRandomFile v3
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>
