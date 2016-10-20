@@ -55,13 +55,16 @@ public class RandomFileClass {
             raf.seek(0);
             raf.setLength(leagueSize);
 
-            System.out.print(jsonObject.get("sponsor") + " - (30 chars): ");
-            String sponsorName = scan.nextLine();
+            String sponsorName = "";
 
             while (sponsorName.length() > 30 || sponsorName.isEmpty()) {
                 System.out.print(jsonObject.get("sponsor") + " - (30 chars): ");
                 sponsorName = scan.nextLine();
+                if (sponsorName.equals("q")) {
+                    return;
+                }
             }
+
             raf.seek(0);
 
             raf.writeUTF(sponsorName); // 4x30 -120 inside of 130 bytes
@@ -228,13 +231,17 @@ public class RandomFileClass {
             Object obj = parser.parse(cLang);
             JSONObject jsonObject = (JSONObject) obj;
 
-            System.out.print(jsonObject.get("nteams") + " (>1): ");
 
-            int nteams = parseIntN(scan.nextLine());
+            String nteams_tmp;
+            int nteams = 0;
 
             while (nteams < 2) {
                 System.out.print(jsonObject.get("nteams") + " (>1): ");
-                nteams = parseIntN(scan.nextLine());
+                nteams_tmp = scan.nextLine();
+                nteams = parseIntN(nteams_tmp);
+                if (nteams_tmp.equals("q")) {
+                    System.exit(0);
+                }
             }
 
             // set the properties value
@@ -279,4 +286,3 @@ public class RandomFileClass {
         }
     }
 }
-

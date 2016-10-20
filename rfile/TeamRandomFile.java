@@ -305,7 +305,7 @@ public class TeamRandomFile {
                 System.out.println("[2] " + jsonObject.get("newleague"));
             }
             System.out.println("[t] " + jsonObject.get("viewnteams"));
-            System.out.println("[0] " + jsonObject.get("exit"));
+            System.out.println("[q] " + jsonObject.get("exit"));
             System.out.println("****************************************\n");
             System.out.print(jsonObject.get("select") + ": ");
 
@@ -368,54 +368,69 @@ public class TeamRandomFile {
             Object obj = parser.parse(cLang);
             JSONObject jsonObject = (JSONObject) obj;
 
-            System.out.print(jsonObject.get("selectlteam") + ": ");
-            int teaml = parseIntN(scan.nextLine());
+            String teaml_tmp;
+            int teaml = 0;
             while (teaml > teams || teaml < 1) {
                 System.out.print(jsonObject.get("selectlteam") + ": ");
-                teaml = parseIntN(scan.nextLine());
+                teaml_tmp = scan.nextLine();
+                teaml = parseIntN(teaml_tmp);
+                if (teaml_tmp.equals("q")){
+                    return;
+                }
             }
 
-            System.out.print(jsonObject.get("selectvteam") + ": ");
-            int teamv = parseIntN(scan.nextLine());
+            String teamv_tmp;
+            int teamv = 0;
             while (teamv > teams || teamv < 1 || teamv == teaml) {
+                System.out.print(jsonObject.get("selectvteam") + ": ");
+                teamv_tmp = scan.nextLine();
+                teamv = parseIntN(teamv_tmp);
                 if (teamv == teaml) {
                     System.out.println(jsonObject.get("cantbeequals"));
                 }
-                System.out.print(jsonObject.get("selectvteam") + ": ");
-                teamv = parseIntN(scan.nextLine());
+                if (teamv_tmp.equals("q")){
+                    return;
+                }
             }
 
-            System.out.print(jsonObject.get("pteam") + " " + teaml + " (" + MAX_POINTS + "): ");
-
-            short pTeam1 = parseShortN(scan.nextLine());
+            String pteam1_tmp;
+            short pTeam1 = 0;
             while (!(pTeam1 <= MAX_POINTS) || !(pTeam1 >= 0)) {
                 System.out.print(jsonObject.get("pteam") + " " + teaml + " (" + MAX_POINTS + "): ");
-                pTeam1 = parseShortN(scan.nextLine());
+                pteam1_tmp = scan.nextLine();
+                pTeam1 = parseShortN(pteam1_tmp);
+                if (pteam1_tmp.equals("q")){
+                    return;
+                }
             }
 
-            System.out.print(jsonObject.get("pteam") + " " + teamv + " (" + MAX_POINTS + "): ");
-
-            short pTeam2 = parseShortN(scan.nextLine());
+            String pteam2_tmp;
+            short pTeam2 = 0;
             while (!(pTeam2 <= MAX_POINTS) || !(pTeam2 >= 0)) {
                 System.out.print(jsonObject.get("pteam") + " " + teamv + " (" + MAX_POINTS + "): ");
-                pTeam2 = parseShortN(scan.nextLine());
+                pteam2_tmp = scan.nextLine();
+                pTeam2 = parseShortN(pteam2_tmp);
+                if (pteam2_tmp.equals("q")){
+                    return;
+                }
             }
 
-            System.out.print(jsonObject.get("rname") + " - (" + REFEREE_LENGTH + " chars): ");
-
-            String refereeName = scan.nextLine();
-            while (refereeName.length() > REFEREE_LENGTH || refereeName.isEmpty()) {
+            String refereeName = "";
+            while (refereeName.length() > REFEREE_LENGTH || refereeName.isEmpty() || refereeName.length() < 2) {
                 System.out.print(jsonObject.get("rname") + " - (" + REFEREE_LENGTH + " chars): ");
                 refereeName = scan.nextLine();
+                if (refereeName.equals("q")){
+                    return;
+                }
             }
 
-            System.out.print(jsonObject.get("date") + " - (YYMMDD): ");
-
-            String date = scan.nextLine();
-
+            String date = "";
             while (String.valueOf(date).length() != 6 || !parseDate(String.valueOf(date))) {
                 System.out.print(jsonObject.get("date") + " - (YYMMDD): ");
                 date = scan.nextLine();
+                if (date.equals("q")){
+                    return;
+                }
             }
 
             writeRandom(teaml, teamv, pTeam1, pTeam2, refereeName, date);
@@ -442,21 +457,29 @@ public class TeamRandomFile {
             Object obj = parser.parse(cLang);
             JSONObject jsonObject = (JSONObject) obj;
 
-            System.out.print(jsonObject.get("selectlteam") + ": ");
-            int teaml = parseIntN(scan.nextLine());
+            String teaml_tmp;
+            int teaml = 0;
             while (teaml > teams || teaml < 1) {
                 System.out.print(jsonObject.get("selectlteam") + ": ");
-                teaml = parseIntN(scan.nextLine());
+                teaml_tmp = scan.nextLine();
+                teaml = parseIntN(teaml_tmp);
+                if (teaml_tmp.equals("q")){
+                    return;
+                }
             }
 
-            System.out.print(jsonObject.get("selectvteam") + ": ");
-            int teamv = parseIntN(scan.nextLine());
+            String teamv_tmp;
+            int teamv = 0;
             while (teamv > teams || teamv < 1 || teamv == teaml) {
+                System.out.print(jsonObject.get("selectvteam") + ": ");
+                teamv_tmp = scan.nextLine();
+                teamv = parseIntN(teamv_tmp);
                 if (teamv == teaml) {
                     System.out.println(jsonObject.get("cantbeequals"));
                 }
-                System.out.print(jsonObject.get("selectvteam") + ": ");
-                teamv = parseIntN(scan.nextLine());
+                if (teamv_tmp.equals("q")){
+                    return;
+                }
             }
 
             readRandom(teaml, teamv);
@@ -598,11 +621,11 @@ public class TeamRandomFile {
                 case "m":
                     menu();
                     break;
-                case "0":
+                case "q":
                     showBye();
                     break;
             }
-        } while (!menuItem.equals("0"));
+        } while (!menuItem.equals("q"));
     }
 }
 
