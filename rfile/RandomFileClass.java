@@ -10,7 +10,7 @@ import static rfile.TeamRandomFile.*;
 
 
 /**
- * RandomFileClass v3.5
+ * RandomFileClass v3.7
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>

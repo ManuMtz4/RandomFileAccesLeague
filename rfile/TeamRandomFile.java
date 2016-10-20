@@ -12,7 +12,7 @@ import static rfile.RandomFileClass.*;
 import static rfile.SortMatches.*;
 
 /**
- * TeamRandomFile v3.5
+ * TeamRandomFile v3.7
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>
@@ -77,11 +77,12 @@ public class TeamRandomFile {
 
                 // save properties to project root folder
                 prop.store(output, null);
-                jsonLang();
+
             } catch (IOException io) {
                 io.printStackTrace();
             }
         }
+        jsonLang();
     }
 
     /**
@@ -109,6 +110,7 @@ public class TeamRandomFile {
             defaultMenu.put("queuedmatch", "Next match queued");
             defaultMenu.put("reset", "Reset league");
             defaultMenu.put("slang", "Select language");
+            defaultMenu.put("clang", "Current language");
             defaultMenu.put("select", "Select");
             defaultMenu.put("selectlteam", "Select Local Team");
             defaultMenu.put("selectvteam", "Select Visitor Team");
@@ -149,27 +151,6 @@ public class TeamRandomFile {
     }
 
     /**
-     * Shows all available lang files
-     */
-    public static void selectLanguage() {
-        langFiles();
-
-        if (langExist.size() < 2) {
-            return;
-        } else {
-            int i = 0;
-            for (String c : langExist) {
-                System.out.print(c.substring(0, c.length() - 5));
-                if (i < langExist.size() - 1) {
-                    System.out.print(", ");
-                }
-                i++;
-            }
-            System.out.println();
-        }
-    }
-
-    /**
      * Runs cfg file
      *
      * @throws IOException
@@ -185,16 +166,10 @@ public class TeamRandomFile {
             // get the property value
             current = prop.getProperty("lang");
 
-            //If current language doesn't exist, current language will be set to default
-
-            File cLang = new File(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
-
-            if (!cLang.exists()) {
-                current = DEFAULT_FILE_NAME_LANG;
-            }
         } catch (IOException io) {
             io.printStackTrace();
         }
+        resetlang();
     }
 
     /**
@@ -223,6 +198,27 @@ public class TeamRandomFile {
         }
     }
 
+    public static void resetlang() {
+        //If current language doesn't exist, current language will be set to default
+
+        File cLang = new File(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
+
+        if (!cLang.exists()) {
+            try (OutputStream output = new FileOutputStream(defaultFilecfg)) {
+
+                // set the properties value
+                prop.setProperty("lang", DEFAULT_FILE_NAME_LANG);
+                current = DEFAULT_FILE_NAME_LANG;
+
+                // save properties to project root folder
+                prop.store(output, null);
+
+            } catch (IOException io) {
+                io.printStackTrace();
+            }
+        }
+    }
+
     /**
      * Sets another language
      *
@@ -230,7 +226,7 @@ public class TeamRandomFile {
      * @throws ParseException
      */
     public static void changeLang() {
-        selectLanguage();
+        langFiles();
 
         try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
@@ -238,7 +234,22 @@ public class TeamRandomFile {
 
             Object obj = parser.parse(cLang);
             JSONObject jsonObject = (JSONObject) obj;
-            if (langExist.size() < 2) {
+
+            System.out.println(jsonObject.get("clang")+": "+current);
+
+            if (langExist.size() > 1) {
+                int i = 0;
+                System.out.print("[");
+                for (String c : langExist) {
+                    System.out.print(c.substring(0, c.length() - 5));
+                    if (i < langExist.size() - 1) {
+                        System.out.print(", ");
+                    }
+                    i++;
+                }
+                System.out.print("]");
+                System.out.println();
+            } else if (langExist.size() < 2) {
                 System.out.println(jsonObject.get("onelang"));
                 return;
             }
@@ -247,15 +258,17 @@ public class TeamRandomFile {
 
             if (langExist.contains(lang + D_FILE_EXT_LANG)) {
 
-                OutputStream output = new FileOutputStream(defaultFilecfg);
+                try (OutputStream output = new FileOutputStream(defaultFilecfg)) {
 
-                // set the properties value
-                prop.setProperty("lang", lang);
+                    // set the properties value
+                    prop.setProperty("lang", lang);
 
-                // save properties to project root folder
-                prop.store(output, null);
+                    // save properties to project root folder
+                    prop.store(output, null);
 
-                output.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
             }
             loadCfg();
         } catch (IOException io) {
