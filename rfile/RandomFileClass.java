@@ -1,7 +1,5 @@
 package rfile;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
@@ -10,7 +8,7 @@ import static rfile.TeamRandomFile.*;
 
 
 /**
- * RandomFileClass v3.7
+ * RandomFileClass v4
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>
@@ -26,10 +24,17 @@ public class RandomFileClass {
 
     static long leagueSize;
 
+    /**
+     * File league exist?
+     * @return
+     */
     static boolean fileExist() {
         return fileLeague.exists();
     }
 
+    /**
+     * Resets the league
+     */
     static void resetLeague() {
         fileLeague.delete();
         writeNTeams();
@@ -44,13 +49,7 @@ public class RandomFileClass {
      */
     static void newRandomFile() {
 
-        try (RandomAccessFile raf = new RandomAccessFile(fileLeague, "rw");
-             FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
-
-            JSONParser parser = new JSONParser();
-
-            Object obj = parser.parse(cLang);
-            JSONObject jsonObject = (JSONObject) obj;
+        try (RandomAccessFile raf = new RandomAccessFile(fileLeague, "rw")) {
 
             raf.seek(0);
             raf.setLength(leagueSize);
@@ -71,8 +70,6 @@ public class RandomFileClass {
 
         } catch (IOException io) {
             io.printStackTrace();
-        } catch (ParseException pe) {
-            pe.printStackTrace();
         }
     }
 
@@ -141,13 +138,7 @@ public class RandomFileClass {
      */
     static void readRandom(int teaml, int teamv) {
 
-        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
-             RandomAccessFile raf = new RandomAccessFile(fileLeague, "r")) {
-
-            JSONParser parser = new JSONParser();
-            Object obj = parser.parse(cLang);
-            JSONObject jsonObject = (JSONObject) obj;
-
+        try (RandomAccessFile raf = new RandomAccessFile(fileLeague, "r")) {
 
             long eachLocal = leagueSize / teams; // each local space
 
@@ -173,8 +164,6 @@ public class RandomFileClass {
 
         } catch (IOException io) {
             io.printStackTrace();
-        } catch (ParseException pe) {
-            pe.printStackTrace();
         }
     }
 
@@ -188,12 +177,7 @@ public class RandomFileClass {
      */
     static void readAllRandom(int teaml, int teamv) {
 
-        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG);
-             RandomAccessFile raf = new RandomAccessFile(fileLeague, "r")) {
-
-            JSONParser parser = new JSONParser();
-            Object obj = parser.parse(cLang);
-            JSONObject jsonObject = (JSONObject) obj;
+        try (RandomAccessFile raf = new RandomAccessFile(fileLeague, "r")) {
 
             long eachLocal = leagueSize / teams; // each local space
 
@@ -217,20 +201,14 @@ public class RandomFileClass {
 
         } catch (IOException io) {
             io.printStackTrace();
-        } catch (ParseException pe) {
-            pe.printStackTrace();
         }
     }
 
+    /**
+     * Sets total teams
+     */
     static void writeNTeams() {
-        try (OutputStream output = new FileOutputStream(defaultFilecfg);
-             FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
-
-            JSONParser parser = new JSONParser();
-
-            Object obj = parser.parse(cLang);
-            JSONObject jsonObject = (JSONObject) obj;
-
+        try (OutputStream output = new FileOutputStream(defaultFilecfg)) {
 
             String nteams_tmp;
             int nteams = 0;
@@ -254,8 +232,6 @@ public class RandomFileClass {
 
         } catch (IOException io) {
             io.printStackTrace();
-        } catch (ParseException pe) {
-            pe.printStackTrace();
         }
     }
 
@@ -266,23 +242,15 @@ public class RandomFileClass {
      * @throws ParseException
      */
     static void viewNTeams() {
-        try (InputStream input = new FileInputStream(defaultFilecfg);
-             FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
+        try (InputStream input = new FileInputStream(defaultFilecfg)) {
 
             // load a properties
             prop.load(input);
-
-            JSONParser parser = new JSONParser();
-
-            Object obj = parser.parse(cLang);
-            JSONObject jsonObject = (JSONObject) obj;
 
             System.out.println(jsonObject.get("shownteams") + ": " + prop.getProperty("nteams") + " " + jsonObject.get("teams"));
 
         } catch (IOException io) {
             io.printStackTrace();
-        } catch (ParseException pe) {
-            pe.printStackTrace();
         }
     }
 }

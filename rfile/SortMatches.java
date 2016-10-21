@@ -1,11 +1,8 @@
 package rfile;
 
 import org.joda.time.DateTime;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
@@ -15,7 +12,7 @@ import static rfile.RandomFileClass.*;
 import static rfile.TeamRandomFile.*;
 
 /**
- * SortMatches v1.5
+ * SortMatches v2
  * <p>
  * Copyright 2016 Manuel Martínez <ManuMtz@icloud.com> / <ManuMtz@hotmail.co.uk>
  * <p>
@@ -99,33 +96,22 @@ public class SortMatches {
         allMatches();
         Collections.sort(sortedMatches, new DateComparator());
 
-        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
+        System.out.println();
 
-            JSONParser parser = new JSONParser();
-            Object obj = parser.parse(cLang);
-            JSONObject jsonObject = (JSONObject) obj;
+        System.out.println(jsonObject.get("welcomeleague") + ": " + readLeague());
 
-            System.out.println();
+        for (Object[] sortedMatch : sortedMatches) {
 
-            System.out.println(jsonObject.get("welcomeleague") + ": " + readLeague());
-
-            for (Object[] sortedMatch : sortedMatches) {
-
-                for (int i = 0; i < 1; i++) {
-                    System.out.print("[");
-                    System.out.print(sortedMatch[4] + " " + jsonObject.get("pteam") + ": " + sortedMatch[0] + " | ");
-                    System.out.print(sortedMatch[5] + " " + jsonObject.get("pteam") + ": " + sortedMatch[1] + " | ");
-                    System.out.print(jsonObject.get("rname") + ": " + sortedMatch[2] + " | ");
-                    System.out.print(jsonObject.get("date") + ": " + sortedMatch[3]);
-                    System.out.println("]");
-                }
+            for (int i = 0; i < 1; i++) {
+                System.out.print("[");
+                System.out.print(sortedMatch[4] + " " + jsonObject.get("pteam") + ": " + sortedMatch[0] + " | ");
+                System.out.print(sortedMatch[5] + " " + jsonObject.get("pteam") + ": " + sortedMatch[1] + " | ");
+                System.out.print(jsonObject.get("rname") + ": " + sortedMatch[2] + " | ");
+                System.out.print(jsonObject.get("date") + ": " + sortedMatch[3]);
+                System.out.println("]");
             }
-            System.out.println();
-        } catch (IOException io) {
-            io.printStackTrace();
-        } catch (ParseException pe) {
-            pe.printStackTrace();
         }
+        System.out.println();
     }
 
     /**
@@ -138,33 +124,22 @@ public class SortMatches {
         allMatches();
         Collections.sort(sortedMatches, new PointsComparator());
 
-        try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
+        System.out.println();
 
-            JSONParser parser = new JSONParser();
-            Object obj = parser.parse(cLang);
-            JSONObject jsonObject = (JSONObject) obj;
+        System.out.println(jsonObject.get("welcomeleague") + ": " + readLeague());
 
-            System.out.println();
+        for (Object[] sortedMatch : sortedMatches) {
 
-            System.out.println(jsonObject.get("welcomeleague") + ": " + readLeague());
-
-            for (Object[] sortedMatch : sortedMatches) {
-
-                for (int i = 0; i < 1; i++) {
-                    System.out.print("[");
-                    System.out.print(sortedMatch[4] + " " + jsonObject.get("pteam") + ": " + sortedMatch[0] + " | ");
-                    System.out.print(sortedMatch[5] + " " + jsonObject.get("pteam") + ": " + sortedMatch[1] + " | ");
-                    System.out.print(jsonObject.get("rname") + ": " + sortedMatch[2] + " | ");
-                    System.out.print(jsonObject.get("date") + ": " + sortedMatch[3]);
-                    System.out.println("]");
-                }
+            for (int i = 0; i < 1; i++) {
+                System.out.print("[");
+                System.out.print(sortedMatch[4] + " " + jsonObject.get("pteam") + ": " + sortedMatch[0] + " | ");
+                System.out.print(sortedMatch[5] + " " + jsonObject.get("pteam") + ": " + sortedMatch[1] + " | ");
+                System.out.print(jsonObject.get("rname") + ": " + sortedMatch[2] + " | ");
+                System.out.print(jsonObject.get("date") + ": " + sortedMatch[3]);
+                System.out.println("]");
             }
-            System.out.println();
-        } catch (IOException io) {
-            io.printStackTrace();
-        } catch (ParseException pe) {
-            pe.printStackTrace();
         }
+        System.out.println();
     }
 }
 
