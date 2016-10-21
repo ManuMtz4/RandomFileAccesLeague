@@ -509,7 +509,6 @@ public class TeamRandomFile {
     static void loadJson() {
         try (FileReader cLang = new FileReader(DEFAULT_DIR + SP + current + D_FILE_EXT_LANG)) {
 
-
             JSONParser parser = new JSONParser();
 
             Object obj = parser.parse(cLang);

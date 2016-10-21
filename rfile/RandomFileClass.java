@@ -227,6 +227,8 @@ public class RandomFileClass {
 
             teams = nteams;
 
+            leagueSize = teams * teams * EACH_MATCH;
+
             // save properties to project root folder
             prop.store(output, null);
 

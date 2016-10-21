@@ -170,4 +170,3 @@ class PointsComparator implements Comparator<Object[]> {
         return bx - ax;
     }
 }
-
